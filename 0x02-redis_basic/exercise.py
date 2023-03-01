@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """ Script for Writing basic redis commands with python """
 import redis
+from uuid import uuid4
 from functools import wraps
 from typing import Any, Callable
-from uuid import uuid4
 
 
 def count_calls(method: Callable) -> Callable:
