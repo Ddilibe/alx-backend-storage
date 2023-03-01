@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """ Script for Writing basic redis commands with python """
-from typing import Any, Callable
-from functools import wraps
-from uuid import uuid4
 import redis
+from functools import wraps
+from typing import Any, Callable
+from uuid import uuid4
 
 
 def count_calls(method: Callable) -> Callable:
@@ -49,6 +49,24 @@ def call_history(method: Callable) -> Callable:
         self._redis.rpush("{}:outputs".format(key), output)
         return method(self, *args, **kwargs)
     return wrapper
+
+
+def replay(method: Callable) -> None:
+    """ Function that displays thehistory of calss of a particular function
+        Args:
+            :params: method[Callable] - A callable function
+        Return:
+            This function returns no variable
+    """
+    cache, key = redis.Redis(), method.__qualname__
+    num = int(cache.get(key))
+    time = "times" if int(num) > 1 else "time"
+    print("{} was called {} {}:".format(key, num, time))
+    inputs = cache.lrange("{}:inputs".format(key), 0, -1)
+    outputs = cache.lrange("{}:outputs".format(key), 0, -1)
+    for name, value in zip(inputs, outputs):
+        name, value = name.decode('utf-8'), value.decode('utf-8')
+        print("{}(*{}) -> {}".format(key, name, value))
 
 
 class Cache(object):
